@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+"""
+Provides a cli interface to the nntp checker.
+"""
+
 import argparse
 import getpass
 import sys
@@ -9,6 +13,7 @@ import nntp
 from nntp import BadConfig
 
 def parse_opts(opts=None):
+    """ Parse the arguments. """
     parser = argparse.ArgumentParser(description="nntp news checker")
 
     parser.add_argument("action", default="count", nargs="?",
@@ -44,6 +49,7 @@ def parse_opts(opts=None):
     return args
 
 def get_merged(conf, opts):
+    """ Merges conf and opts. """
     merged = nntp.get_merged_config(conf)
 
     merged["action"] = opts.action
@@ -63,6 +69,7 @@ def get_merged(conf, opts):
     return merged
 
 def get_password(conf, prompt=False):
+    """ Gets a password (possibly from the user). """
     user = conf["server"]["user"]
     host = conf["server"]["host"]
 
@@ -78,28 +85,32 @@ def get_password(conf, prompt=False):
 
 
 def do_list(server, config):
+    """ Long list of new messages. """
     for group in config["groups"]:
         subs = server.new_subs(group)
         if subs:
             print group
-            for id, sub in subs[-config["listmax"]:]:
-                print id, sub
+            for uid, sub in subs[-config["listmax"]:]:
+                print uid, sub
 
 def do_count(server, config):
+    """ Short list of new messages. """
     for group in config["groups"]:
         subs = server.new_subs(group)
         if subs:
             print "%s: %s" % (group, len(subs))
 
 def do_mark(server, config):
+    """ Mark messages as read. """
     for group in config["groups"]:
         subs = server.new_subs(group)
         if subs:
-            last, sub = subs[-1]
+            last, _sub = subs[-1]
             config["seen"][group] = int(last)
 
 
 def main():
+    """ Run the main program. """
     opts = parse_opts()
     config = nntp.get_config(opts.conf)
     merged = get_merged(config, opts)
@@ -110,8 +121,8 @@ def main():
         passwd = get_password(merged, opts.passwd)
         try:
             checker = nntp.get_server(merged, passwd)
-        except BadConfig, e:
-            print e
+        except BadConfig, exe:
+            print exe
             sys.exit(1)
 
         if opts.action == "list":

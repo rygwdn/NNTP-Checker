@@ -1,29 +1,30 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+"""
+Provides an indicator applet for the nntp checker.
+"""
+
 import nntp
-from nntp import BadConfig
 
 import pynotify
 import indicate
 import gobject
 import gtk
 
-import thread, threading
-import time
 import os, sys
 from nntplib import NNTPTemporaryError
 
 APP_NAME = "NNTP Checker"
 FILE = "tst.yml" # nntp.FILE
-checker = None
-srv = None
 
 def notify(mess, title=APP_NAME):
+    """ Display a notification to user. """
     notif = pynotify.Notification(title, mess)
     notif.show()
 
-class Server(object):
+class IndicatorServer(object):
+    """ Provides an interface to the indicator applet system. """
     def __init__(self, desktop, actions_top=True):
         self.groups = {}
         self.actions = {}
@@ -39,6 +40,7 @@ class Server(object):
         self.srv.show()
 
     def set_group(self, name, count):
+        """ Sets the count for a group. """
         init_count = 0
 
         if name in self.groups:
@@ -66,6 +68,7 @@ class Server(object):
         return ind
 
     def hide_group(self, name):
+        """ Hide and remove a group from the indicator. """
         try:
             self.groups[name].hide()
             del self.groups[name]
@@ -73,27 +76,32 @@ class Server(object):
             print "Tried to hide non-existant group: ", name
 
     def hide_all(self):
+        """ Hide everything. """
         for group in self.groups.keys():
             self.hide_group(group)
         for action in self.actions.keys():
             self.del_action(action)
 
     def add_clear(self, func):
-        def clear(ind, id):
+        """ Adds the clear option, which calls func. """
+        def clear(_ind, _uid):
+            """ Called by the indicator. """
             func()
         if "Clear" not in self.actions:
             self.add_action("Clear", clear)
 
-    def add_action(self, name, cb):
+    def add_action(self, name, callback):
+        """ Adds an action to the indicator. """
         ind = indicate.Indicator()
         self.actions[name] = ind
         ind.set_property('name', name)
         ind.set_property('subtype', 'menu')
-        ind.connect('user-display', cb)
+        ind.connect('user-display', callback)
         ind.show()
         return ind
 
     def del_action(self, name):
+        """ Deletes an action from the indicator. """
         try:
             self.actions[name].hide()
             del self.actions[name]
@@ -101,14 +109,19 @@ class Server(object):
             print "Tried to remove non-existant action: ", name
 
     # Click name
-    def server_display(self, srv, id):
-        print "server selected"
+    def server_display(self, _srv, _id):
+        """ Dummy, called when app name clicked. """
+        pass
+        #print "server selected"
 
     # Click item
-    def user_display(self, ind, id):
-        print "group selected"
+    def user_display(self, _ind, _id):
+        """ Dummy, called when a group is clicked. """
+        pass
+        #print "group selected"
 
 class Checker(object):
+    """ Checks the nntp server for new items. """
     def __init__(self, ind_server):
         self.conf = nntp.get_config(FILE)
         self.merged = nntp.get_merged_config(self.conf)
@@ -118,18 +131,23 @@ class Checker(object):
         self.interval = self.merged["indicator"]["interval"]
 
     def run(self):
+        """ Runs the loop by checking for new items, then adding
+        a callback for itself.
+        """
         try:
             self.do_count()
-        except NNTPTemporaryError, e:
-            if "Authent" in str(e):
+        except NNTPTemporaryError, err:
+            if "Authent" in str(err):
                 mess = "Authentication error"
             else:
-                mess = "Error checking messages: %s" % e
+                mess = "Error checking messages: %s" % err
             notify(mess)
 
         gobject.timeout_add_seconds(self.interval, self.run)
 
     def do_count(self):
+        """ Checks for new messages on the server and sets the group counts.
+        """
         for group in self.merged["groups"]:
             subs = self.server.new_subs(group)
             if subs:
@@ -137,10 +155,11 @@ class Checker(object):
                 self.ind_server.set_group(group, len(subs))
 
     def clear(self):
+        """ Clears everything from the indicator, and marks items as read. """
         for group in self.merged["groups"]:
             subs = self.server.new_subs(group)
             if subs:
-                last, sub = subs[-1]
+                last, _sub = subs[-1]
                 self.merged["seen"][group] = int(last)
                 self.conf["seen"][group] = int(last)
                 nntp.save_config(self.conf, FILE)
@@ -148,6 +167,7 @@ class Checker(object):
         self.run()
 
 def main():
+    """ Runs the main program. """
     gtk.gdk.threads_init()
 
     curdir = os.getcwd()
@@ -155,10 +175,11 @@ def main():
     pynotify.init(APP_NAME)
 
     try:
-        srv = Server(desktop_file)
+        srv = IndicatorServer(desktop_file)
         checker = Checker(srv)
-    except Exception, e:
-        mess = "Error checking messages: %s" % e
+    except Exception, err: #pylint: disable=W0703
+        mess = "Error checking messages: %s" % err
+        notify(mess)
         sys.exit(1)
 
     gobject.timeout_add_seconds(1, checker.run)
