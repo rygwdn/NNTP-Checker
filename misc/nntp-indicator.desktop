@@ -2,4 +2,7 @@
 Version=1.0
 Name=NNTP Checker
 Icon=nntp-indicator
+Exec=nntp-indicator
+Terminal=false
+StartupNotify=false
 Type=Application
