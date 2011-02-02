@@ -45,7 +45,7 @@ def needs_login(func):
     """ Ensures that the server is logged in first. """
     def wrapper(self, *args, **kwargs):
         """ Wraps the func. """
-        if not self.s:
+        if not self.server:
             raise RequiresLogin()
         return func(self, *args, **kwargs)
     return wrapper
