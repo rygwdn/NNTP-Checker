@@ -52,8 +52,6 @@ def get_merged(conf, opts):
     """ Merges conf and opts. """
     merged = nntp.get_merged_config(conf)
 
-    merged["action"] = opts.action
-
     if opts.host:
         merged["server"]["host"] = opts.host
     if opts.port:
@@ -63,8 +61,6 @@ def get_merged(conf, opts):
 
     if opts.groups:
         merged["groups"] = opts.groups
-    if opts.list_max:
-        merged["listmax"] = opts.list_max
 
     return merged
 
@@ -84,13 +80,13 @@ def get_password(conf, prompt=False):
     return passwd
 
 
-def do_list(server, config):
+def do_list(server, config, listmax=10):
     """ Long list of new messages. """
     for group in config["groups"]:
         subs = server.new_subs(group)
         if subs:
             print group
-            for uid, sub in subs[-config["listmax"]:]:
+            for uid, sub in subs[-listmax:]:
                 print uid, sub
 
 def do_count(server, config):
@@ -126,7 +122,7 @@ def main():
             sys.exit(1)
 
         if opts.action == "list":
-            do_list(checker, merged)
+            do_list(checker, merged, ops.list_max)
         elif opts.action == "count":
             do_count(checker, merged)
         elif opts.action == "mark":
