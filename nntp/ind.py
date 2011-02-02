@@ -16,7 +16,8 @@ import os, sys
 from nntplib import NNTPTemporaryError
 
 APP_NAME = "NNTP Checker"
-FILE = "tst.yml" # nntp.FILE
+FILE = nntp.FILE
+DESKTOP_FILE = "/usr/share/applications/nntp-indicator.desktop"
 
 def notify(mess, title=APP_NAME):
     """ Display a notification to user. """
@@ -170,12 +171,10 @@ def main():
     """ Runs the main program. """
     gtk.gdk.threads_init()
 
-    curdir = os.getcwd()
-    desktop_file = os.path.join(curdir, "nntp-checker.desktop")
     pynotify.init(APP_NAME)
 
     try:
-        srv = IndicatorServer(desktop_file)
+        srv = IndicatorServer(DESKTOP_FILE)
         checker = Checker(srv)
     except Exception, err: #pylint: disable=W0703
         mess = "Error checking messages: %s" % err
