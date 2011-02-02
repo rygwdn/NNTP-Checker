@@ -24,7 +24,7 @@ DEFAULTS = {
             "user" : None,
             "host" : None,
             "port" : PORT,
-            #"password" : None
+            "password" : None
             },
         "groups" : [],
         "indicator" : {
