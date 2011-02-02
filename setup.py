@@ -18,12 +18,12 @@ setup(
 
     entry_points = {
             "console_scripts": ["nntp-cli=nntp.cli:main"],
-            "gui_scripts": ["nntp-ind=nntp.ind:main"],
+            "gui_scripts": ["nntp-indicator=nntp.ind:main"],
             },
 
     data_files   = [
-            ('share/icons/hicolor/16x16/apps', ['misc/nntp-indicator.png']),
-            ('share/applications', ['misc/nntp-indicator.desktop'])
+            ('/usr/share/icons/hicolor/16x16/apps', ['misc/nntp-indicator.png']),
+            ('/usr/share/applications', ['misc/nntp-indicator.desktop'])
             #('share/man/man1', ['man/nntp.1']),
             #('share/pixmaps', ['pixmaps/nntp.png']),
             ],
