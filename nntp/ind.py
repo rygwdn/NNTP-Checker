@@ -124,12 +124,15 @@ class IndicatorServer(object):
 class Checker(object):
     """ Checks the nntp server for new items. """
     def __init__(self, ind_server):
-        self.conf = nntp.get_config(FILE)
-        self.merged = nntp.get_merged_config(self.conf)
+        self.get_config()
         passwd = nntp.get_password(self.merged)
         self.server = nntp.get_server(self.merged, passwd)
         self.ind_server = ind_server
         self.interval = self.merged["indicator"]["interval"]
+
+    def get_config(self):
+        self.conf = nntp.get_config(FILE)
+        self.merged = nntp.get_merged_config(self.conf)
 
     def run(self):
         """ Runs the loop by checking for new items, then adding
@@ -149,6 +152,7 @@ class Checker(object):
     def do_count(self):
         """ Checks for new messages on the server and sets the group counts.
         """
+        self.get_config() # refresh config file
         for group in self.merged["groups"]:
             subs = self.server.new_subs(group)
             if subs:
@@ -157,6 +161,7 @@ class Checker(object):
 
     def clear(self):
         """ Clears everything from the indicator, and marks items as read. """
+        self.get_config()
         for group in self.merged["groups"]:
             subs = self.server.new_subs(group)
             if subs:
@@ -165,7 +170,7 @@ class Checker(object):
                 self.conf["seen"][group] = int(last)
                 nntp.save_config(self.conf, FILE)
             self.ind_server.hide_all()
-        self.run()
+        self.do_count()
 
 def main():
     """ Runs the main program. """
