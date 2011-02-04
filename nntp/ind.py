@@ -56,9 +56,9 @@ class IndicatorServer(object):
         if count > init_count:
             ind.set_property('draw-attention', 'true')
             if count > 1:
-                mess = "New message in %s" % name
-            else:
                 mess = "%s new messages in %s" % (count, name)
+            else:
+                mess = "New message in %s" % name
             notify(mess)
         if count == 0:
             ind.set_property('draw-attention', 'false')
