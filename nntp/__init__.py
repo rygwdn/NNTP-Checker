@@ -56,6 +56,9 @@ class NNTPCheck(object):
         self.seen = seen
         self.server = None
 
+    def set_seen(self, seen):
+        self.seen = seen
+
     def login(self, host, user=None, passwd=None, port=119):
         """ Log into the server. """
         self.server = nntplib.NNTP(host, port, user, passwd)
