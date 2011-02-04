@@ -122,7 +122,7 @@ def main():
             sys.exit(1)
 
         if opts.action == "list":
-            do_list(checker, merged, ops.list_max)
+            do_list(checker, merged, opts.list_max)
         elif opts.action == "count":
             do_count(checker, merged)
         elif opts.action == "mark":
